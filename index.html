@@ -150,11 +150,11 @@ body{font-family:'Galmuri9',monospace;color:var(--ink);-webkit-font-smoothing:no
 
 .mood-manClose{background:radial-gradient(circle at 50% 40%,#00343f 0 20%,#001a26 20% 50%,#00030f 50% 100%);}
 #game{-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation;}
-#game.flicker{animation:flickerFx .95s steps(1) 1;}
-@keyframes flickerFx{0%{filter:brightness(1)}8%{filter:brightness(3)}16%{filter:brightness(.25)}30%{filter:brightness(2.6)}40%{filter:brightness(.2)}58%{filter:brightness(2)}68%{filter:brightness(.35)}82%{filter:brightness(1.5)}100%{filter:brightness(1)}}
+#game.flicker{animation:flickerFx .55s steps(1) 1;}
+@keyframes flickerFx{0%{filter:brightness(1)}12%{filter:brightness(1.45)}24%{filter:brightness(.78)}38%{filter:brightness(1.3)}52%{filter:brightness(.86)}68%{filter:brightness(1.18)}100%{filter:brightness(1)}}
 #fxFlash{position:absolute;inset:0;z-index:15;pointer-events:none;background:#fff;mix-blend-mode:difference;opacity:0;}
 #fxFlash.on{animation:fxOn .2s steps(1);}
-@keyframes fxOn{0%{opacity:1}40%{opacity:0}60%{opacity:.7}100%{opacity:0}}
+@keyframes fxOn{0%{opacity:.42}35%{opacity:0}60%{opacity:.18}100%{opacity:0}}
 #game.danger .vignette{box-shadow:inset 0 0 16vw 7vw rgba(163,24,47,.65);animation:dpulse .82s infinite;}
 @keyframes dpulse{0%,100%{opacity:1}50%{opacity:.5}}
 #endTitle.death{animation:glitchFx 1.5s infinite steps(1);}
@@ -241,11 +241,11 @@ body{font-family:'Galmuri9',monospace;color:var(--ink);-webkit-font-smoothing:no
 @keyframes vhsJitter{0%,95%,100%{transform:translateX(0)}96%{transform:translateX(-2px)}97%{transform:translateX(2px)}98%{transform:translateX(-1px)}99%{transform:translateX(1px)}}
 #game.fxlow{animation:none!important;}
 
-#laserSweep{position:absolute;left:0;right:0;top:-6px;height:4px;z-index:15;pointer-events:none;opacity:0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.9) 18%,#fff 50%,rgba(255,255,255,.9) 82%,transparent);
-  box-shadow:0 0 14px 4px rgba(255,255,255,.85),0 0 34px 12px rgba(170,255,225,.45);}
+#laserSweep{position:absolute;left:0;right:0;top:-6px;height:3px;z-index:15;pointer-events:none;opacity:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55) 18%,rgba(255,255,255,.8) 50%,rgba(255,255,255,.55) 82%,transparent);
+  box-shadow:0 0 8px 2px rgba(255,255,255,.45),0 0 18px 6px rgba(170,255,225,.22);}
 #laserSweep.sweep{animation:laserSweepFx .42s cubic-bezier(.3,.7,.2,1);}
-@keyframes laserSweepFx{0%{top:-6px;opacity:0;}8%{opacity:1;}90%{opacity:1;}100%{top:100%;opacity:0;}}
+@keyframes laserSweepFx{0%{top:-6px;opacity:0;}10%{opacity:.75;}88%{opacity:.75;}100%{top:100%;opacity:0;}}
 
 .bglayer.cg{background-size:contain!important;background-repeat:no-repeat;background-position:center;background-color:#000!important;}
 .mood-whisper1,.mood-whisper2{background:#000;}
@@ -760,7 +760,7 @@ function shakeScreen(kind){
   el.classList.add(kind==='hard'?'shake-hard':'shake');
   if(kind==='hard'){
     const f=$('fxFlash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
-    const ls=$('laserSweep'); ls.classList.remove('sweep'); void ls.offsetWidth; ls.classList.add('sweep');
+    triggerLaserSweep();
   }
 }
 function flashScreen(){
@@ -894,24 +894,37 @@ function renderLine(){
   const entry = lines[lineIdx];
   const full = entry.t;
   const spk = entry.speaker || '';
-  triggerFx(entry); speakerBg(spk); logLine(spk,full,nodeId+'|'+full.slice(0,16));
-  $('speaker').textContent = spk;
 
-  // 일부 독백은 이전 연출 이미지가 완전히 사라진 뒤에 보여준다.
-  // bgBefore가 지정되면 배경을 먼저 크로스페이드하고, 전환이 끝난 뒤 타이핑을 시작한다.
+  // bgBefore가 있으면 배경 전환을 가장 먼저 시작한다.
+  // 대사는 전환이 끝난 뒤에만 표시/타이핑하여, "허억…… 허억……"이
+  // whisper2 위에서 먼저 출력되는 일이 없도록 한다.
   if(entry.bgBefore){
     busy=true;
+    $('speaker').textContent='';
+    $('dialogue').textContent='';
+    $('continueHint').classList.remove('blink');
+    $('dialogue').classList.remove('emph');
     setBg(entry.bgBefore, false, false);
     const meNode=node, meLine=lineIdx;
     setTimeout(()=>{
       if(node===meNode && lineIdx===meLine){
         busy=false;
+        $('speaker').textContent=spk;
+        logLine(spk,full,nodeId+'|'+full.slice(0,16));
+        if(entry.sfx) playSfx(entry.sfx);
+        if(entry.shake) shakeScreen(entry.shake);
+        if(entry.flash) flashScreen();
+        $('dialogue').classList.toggle('emph', !!entry.emph);
         typeText(full);
       }
     }, 1150);
     return;
   }
 
+  triggerFx(entry);
+  speakerBg(spk);
+  logLine(spk,full,nodeId+'|'+full.slice(0,16));
+  $('speaker').textContent = spk;
   typeText(full);
 }
 
@@ -1152,11 +1165,24 @@ function updateNarrow(){ const g=$('game'); g.classList.toggle('narrow', g.clien
 window.addEventListener('resize',()=>{ updateNarrow(); renderHotspots(); });
 updateNarrow();
 
-let vol=.55, boxA=.92, fxLow=false, busy=false, vhsTimer=null;
+let vol=.55, boxA=.92, fxLow=false, busy=false, vhsTimer=null, laserTimer=null;
 try{ const st=JSON.parse(localStorage.getItem('resp_set')||'null');
   if(st){ if(st.vol!=null)vol=st.vol; if(st.box!=null)boxA=st.box; fxLow=!!st.low; }
   else if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) fxLow=true; }catch(e){}
 function setDim(v,fast){ const d=$('dimLayer'); d.style.transition=fast?'none':'opacity 1.6s ease'; d.style.opacity=v; }
+function triggerLaserSweep(){
+  if(fxLow) return;
+  const ls=$('laserSweep');
+  ls.classList.remove('sweep');
+  void ls.offsetWidth;
+  ls.classList.add('sweep');
+}
+function restartLaserTimer(){
+  clearInterval(laserTimer);
+  laserTimer=null;
+  if(!fxLow) laserTimer=setInterval(triggerLaserSweep,10000);
+}
+
 function applySet(){
   $('game').style.setProperty('--boxa',boxA); $('game').classList.toggle('fxlow',fxLow);
   if(master) master.gain.value=muted?0:vol;
@@ -1169,6 +1195,7 @@ function applySet(){
   clearInterval(vhsTimer);
   vhsTimer=null;
   $('vhsTrack').style.opacity='0';
+  restartLaserTimer();
   try{ localStorage.setItem('resp_set',JSON.stringify({vol,box:boxA,low:fxLow})); }catch(e){}
 }
 $('volRange').oninput=e=>{ vol=e.target.value/100; applySet(); tick(); };
