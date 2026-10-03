@@ -216,11 +216,11 @@ body{font-family:'Galmuri9',monospace;color:var(--ink);-webkit-font-smoothing:no
 @keyframes vhsJitter{0%,95%,100%{transform:translateX(0)}96%{transform:translateX(-2px)}97%{transform:translateX(2px)}98%{transform:translateX(-1px)}99%{transform:translateX(1px)}}
 #game.fxlow{animation:none!important;}
 
-#laserSweep{position:absolute;left:0;right:0;top:-6px;height:4px;z-index:15;pointer-events:none;opacity:0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.9) 18%,#fff 50%,rgba(255,255,255,.9) 82%,transparent);
-  box-shadow:0 0 14px 4px rgba(255,255,255,.85),0 0 34px 12px rgba(170,255,225,.45);}
-#laserSweep.sweep{animation:laserSweepFx .42s cubic-bezier(.3,.7,.2,1);}
-@keyframes laserSweepFx{0%{top:-6px;opacity:0;}8%{opacity:1;}90%{opacity:1;}100%{top:100%;opacity:0;}}
+#laserSweep{position:absolute;left:0;right:0;top:-6px;height:2px;z-index:15;pointer-events:none;opacity:0;
+  background:linear-gradient(90deg,transparent,rgba(190,225,215,.35) 22%,rgba(210,235,225,.5) 50%,rgba(190,225,215,.35) 78%,transparent);
+  box-shadow:0 0 6px 2px rgba(160,210,195,.3);mix-blend-mode:screen;}
+#laserSweep.sweep{animation:laserSweepFx .55s ease-in-out;}
+@keyframes laserSweepFx{0%{top:-6px;opacity:0;}10%{opacity:.6;}90%{opacity:.6;}100%{top:100%;opacity:0;}}
 
 .bglayer.cg{background-size:contain!important;background-repeat:no-repeat;background-position:center;background-color:#000!important;}
 .mood-whisper1,.mood-whisper2{background:#000;}
@@ -237,7 +237,7 @@ body{font-family:'Galmuri9',monospace;color:var(--ink);-webkit-font-smoothing:no
   100%{opacity:1;filter:none;transform:translateX(0);}
 }
 
-#endLabel,#endTitle,#endDesc,#endCount{display:none;}
+#endDesc{display:none;}
 </style>
 </head>
 <body>
@@ -443,8 +443,8 @@ const N = {
         {speaker:'???', t:'이런 위험한 걸 그냥 내버려두고.'},
         {speaker:'???', t:'그렇게 또 누군가를 죽게 두려고?', bg:'whisper2'},
         {speaker:'???', t:'이걸로 누가 죽게 돼도 나랑은 상관없어~ 라고 말하려고?'},
-        {speaker:'???', t:'배신자.', emph:true, bg:'knife'},
-        {t:'허억…… 허억……'},
+        {speaker:'???', t:'배신자.', emph:true},
+        {t:'허억…… 허억……', bg:'knife'},
         {speaker:'나', t:'(……뭐지 방금건.)'}
       ], effect:()=>state.hasKnife=false}
     ]},
@@ -762,8 +762,9 @@ const INTRO_LINES = ['책임.','네가 막을 수 있었던 일.','네가 외면
 
 function startGame(){
   state.hasKnife=null; state.freed=null;
+  node=null; lineIdx=0;
   $('game').classList.remove('ended'); $('game').classList.add('intro'); setDim(0,true); $('dialogue').style.opacity=''; logArr=[]; setSkip(false);
-  $('ending').classList.remove('show');
+  $('ending').classList.remove('show'); $('ending').style.display='none';
   $('uiLayer').style.display='none';
   const tw=$('titlewrap'), tx=$('titletext');
   tw.style.display='flex';
@@ -1038,7 +1039,7 @@ function showEnding(key){
   $('endCount').textContent='엔딩 달성 '+got.size+' / 3';
   $('game').classList.remove('danger'); clearHotspots(); stopAmbient(); setSkip(false);
   $('game').classList.add('ended');
-  $('ending').classList.add('show');
+  $('ending').style.display=''; $('ending').classList.add('show');
   $('uiLayer').style.display='none';
 }
 
@@ -1087,7 +1088,7 @@ function renderColl(){
 function showTitle(){
   updateNarrow();
   stopAmbient(); setSkip(false); clearHotspots(); node=null; inIntro=false;
-  $('ending').classList.remove('show'); $('uiLayer').style.display='none'; $('titlewrap').style.display='none';
+  $('ending').classList.remove('show'); $('ending').style.display='none'; $('uiLayer').style.display='none'; $('titlewrap').style.display='none';
   $('game').classList.remove('danger','intro','ended'); $('game').classList.add('title');
   const t=$('titleScreen'); t.style.backgroundImage="url('"+IMG_ROOM2+"')"; t.style.display='flex';
 }
