@@ -379,7 +379,7 @@ function setBg(mood,reveal,hardCut){
   } else {
     next.style.backgroundImage = '';
   }
-  if(isCg && hardCut){
+  if(isCg && hardCut && !fxLow){
     next.style.transition='none'; prev.style.transition='none';
     next.classList.add('active'); prev.classList.remove('active');
     void next.offsetWidth;
@@ -580,11 +580,11 @@ const N = {
     {t:'괴한이 바닥에 떨어진 칼을 집어 들었다.', sfx:'tension'},
     {t:'…….'},
     {t:'분명 죽는다.'},
-    {t:'나는 눈을 질끈 감았다.'},
+    {t:'나는 눈을 질끈 감았다.', dim:1},
     {t:'…!', sfx:'stab', shake:'soft'},
     {speaker:'나', t:'(……?)'},
     {t:'칼이 떨어지는 소리가 들렸다. ……왜?'},
-    {t:'조심스럽게 눈을 뜬다.'},
+    {t:'조심스럽게 눈을 뜬다.', dim:0},
     {t:'괴한의 손목이 누군가에게 붙잡혀 있었다.'}
   ], next:'n15'},
 
@@ -752,6 +752,7 @@ function triggerFx(entry){
   if(entry.shake) shakeScreen(entry.shake);
   if(entry.flash) flashScreen();
   if(entry.fade!=null){ setDim(entry.fade); $('dialogue').style.opacity=String(1-entry.fade*.5); }
+  if(entry.dim!=null){ setDim(entry.dim); }
 }
 
 /* ---------- engine ---------- */
@@ -930,9 +931,9 @@ function enterHub(){
   renderHubMain();
 }
 function renderHubMain(){
-  $('box').classList.remove('thought');
   $('choices').innerHTML='';
   $('speaker').textContent = node.speaker||'';
+  logLine(node.speaker||'', node.prompt, nodeId+'-prompt');
   typeText(node.prompt, renderHubButtons);
 }
 function renderHubButtons(){
